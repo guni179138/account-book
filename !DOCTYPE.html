@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 주식 변천사</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Pretendard',sans-serif;
+}
+
+body{
+background:#f5f7fa;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.header{
+text-align:center;
+margin-bottom:25px;
+}
+
+.header h1{
+font-size:32px;
+color:#1e293b;
+}
+
+.header p{
+color:#64748b;
+margin-top:8px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:18px;
+box-shadow:0 2px 15px rgba(0,0,0,.05);
+margin-bottom:20px;
+}
+
+.form-row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+input{
+padding:12px;
+border:1px solid #ddd;
+border-radius:10px;
+font-size:15px;
+}
+
+input[type=date]{
+flex:1;
+}
+
+input[type=number]{
+flex:1;
+}
+
+button{
+background:#2563eb;
+color:white;
+border:none;
+padding:12px 18px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+.summary{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
+}
+
+.box{
+background:#eff6ff;
+padding:15px;
+border-radius:15px;
+text-align:center;
+}
+
+.box h3{
+font-size:14px;
+color:#64748b;
+}
+
+.box p{
+font-size:24px;
+font-weight:bold;
+margin-top:5px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:12px;
+text-align:center;
+border-bottom:1px solid #eee;
+}
+
+th{
+background:#f8fafc;
+}
+
+.up{
+color:#16a34a;
+font-weight:bold;
+}
+
+.down{
+color:#dc2626;
+font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>📈 나의 주식 변천사</h1>
+<p>매일 주가를 기록하고 성장 과정을 확인하세요</p>
+</div>
+
+<div class="card">
+<div class="form-row">
+
+<input type="date" id="date">
+
+<input type="number"
+id="price"
+placeholder="주가 입력">
+
+<button onclick="addData()">추가</button>
+
+</div>
+</div>
+
+<div class="summary">
+
+<div class="box">
+<h3>최초 주가</h3>
+<p id="firstPrice">-</p>
+</div>
+
+<div class="box">
+<h3>현재 주가</h3>
+<p id="lastPrice">-</p>
+</div>
+
+<div class="box">
+<h3>수익률</h3>
+<p id="profit">-</p>
+</div>
+
+</div>
+
+<div class="card">
+<canvas id="stockChart"></canvas>
+</div>
+
+<div class="card">
+<h2 style="margin-bottom:15px;">입력 내역</h2>
+
+<table>
+<thead>
+<tr>
+<th>날짜</th>
+<th>주가</th>
+</tr>
+</thead>
+<tbody id="historyBody"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+let stockData=[];
+
+const ctx=document.getElementById('stockChart');
+
+const chart=new Chart(ctx,{
+type:'line',
+data:{
+labels:[],
+datasets:[{
+label:'주가',
+data:[],
+borderColor:'#2563eb',
+backgroundColor:'rgba(37,99,235,.15)',
+fill:true,
+tension:0.3,
+pointRadius:5
+}]
+},
+options:{
+responsive:true,
+plugins:{
+legend:{
+display:false
+}
+}
+}
+});
+
+function addData(){
+
+const date=
+document.getElementById("date").value;
+
+const price=
+Number(document.getElementById("price").value);
+
+if(!date || !price){
+alert("날짜와 주가를 입력하세요.");
+return;
+}
+
+stockData.push({
+date,
+price
+});
+
+stockData.sort((a,b)=>
+new Date(a.date)-new Date(b.date));
+
+updateScreen();
+
+document.getElementById("price").value="";
+}
+
+function updateScreen(){
+
+chart.data.labels=
+stockData.map(x=>x.date);
+
+chart.data.datasets[0].data=
+stockData.map(x=>x.price);
+
+chart.update();
+
+const body=
+document.getElementById("historyBody");
+
+body.innerHTML=stockData.map(item=>`
+<tr>
+<td>${item.date}</td>
+<td>${item.price.toLocaleString()}원</td>
+</tr>
+`).join("");
+
+const first=stockData[0].price;
+const last=stockData[stockData.length-1].price;
+
+const profit=
+(((last-first)/first)*100).toFixed(2);
+
+document.getElementById("firstPrice")
+.innerText=
+first.toLocaleString()+"원";
+
+document.getElementById("lastPrice")
+.innerText=
+last.toLocaleString()+"원";
+
+document.getElementById("profit")
+.innerHTML=
+profit+"%";
+}
+
+</script>
+
+</body>
+</html>
